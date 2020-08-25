@@ -90,27 +90,3 @@ def save_gsm_srx(list_srx, out_file_name):
     print(out_file_name, 'successful saved')
 
 
-#Work on it later 
-def split_srx_tuple(list_srx):
-    
-    list_srx_address = []
-    for i in list_srx:
-        _,srx = i
-
-        list_srx_address.append(srx)
-        
-    return list_srx_address
-
-
-#work on it later    
-def save_srx_add(list_srx_address, out_srx_add):
-
-    srx_address = open(out_srx_add,"w")
-    for i in list_srx_address:
-        line = "\t".join(i)
-        line += "\n"
-        srx_address.write(line)
-
-    srx_address.close()
-    
-    print(out_srx_add, 'successful saved')
