@@ -64,6 +64,19 @@ def parser(base_dir):
                                     local_list.append(child.text)
 
 
+                                #get GPL 
+                                if 'Platform-Ref' in child.tag:
+                                    local_list.append(child.attrib)
+            
+            
+                                 #get release date - same case below
+                                if 'Status' in child.tag:
+#                                 print(child.tag)
+                                    for char in child.iter():
+                                        if 'Release-Date' in char.tag:
+                                            local_list.append(char.text.strip())
+
+
                                 #get antibody 
                                 if 'Channel' in child.tag:
                                     antib = list()
@@ -193,6 +206,22 @@ def parser(base_dir):
                                         local_list.append('None')
                 
     
+                                #get ChIP 
+                                if 'Channel' in child.tag:
+                                    ChIP = list()
+                                    for char in child.iter():
+                                        if 'Characteristics' in char.tag:                                        
+                                            ChIP.append(char.attrib)
+                                            if char.attrib.get('tag') == 'ChIP':
+                                                local_list.append(char.text.strip())
+                                    count = 0    
+                                    for i in ChIP:
+                                        if 'ChIP' in i.values():
+                                            count  = 1
+                                            break
+                                    if count == 0:
+                                        local_list.append('None')
+
                                 #get chip antibody cat. # 
                                 if 'Channel' in child.tag:
                                     chipantibcat = list()
@@ -315,7 +344,7 @@ def filter_list(big_list):
     wrong_list = []
 
     for sublist in big_list:
-        if len(sublist) == 34:
+        if len(sublist) == 38:
             result_list.append(sublist)
             
         else:
