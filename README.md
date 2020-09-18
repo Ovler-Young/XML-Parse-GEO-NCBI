@@ -6,8 +6,9 @@ We have three main scripts:
 1) get-xml.py (to download the xmls files related to each series from GEO-NCBI)
 2) main-parse.py (parse xmls files using several 'child' and 'subchild' tags
 3) main-srx.py (parse xmls files to recover the SRX information to use it to get the SRR ids)
-4) main-srr.py (webscrapping to recover the SRR Ids for each sample (GSM)) 
-
+4) main-srr.py (web scraping to recover the SRR Ids for each sample (GSM)) 
+5) main-parser-gpl-title.py (web scraping to recover the title of GPLs) 
+6) main-parser-gse-title.py (web scraping to recover the title of GSEs) 
 
 ##########################################################################################################################################################
 1) Download the XMLs files
@@ -132,6 +133,25 @@ python $PATH/main-srr.py -p PATH/DIR_RESULT/srx_chuncked.tsv -o output.csv
 For each run_chunk will be generated an srr_srx.output.csv. If you want to concatenate the srx_srr outputs you can run the concat-csv.sh script.
 
 
+5) GPLs Titles
 
+
+This script will extract the GPLs titles from XMLs files.
+
+The command line: 
+python main-parser-gpl-title.py -p PATH_TO_XMLs_DIR -o xml_gpltitle_out.tsv
+
+To see how to run this script via slurm see run-gpltitle-parse-xml.sh
+
+
+
+6) GSEs Titles 
+
+This script will extract the GSEs titles from XMLs files.
+
+The command line:
+python main-parser-gse-title.py -p PATH_TO_XMLs_DIR -o xml_gsetitle_out.tsv
+
+To see how to run this script via slurm see run-gsetitle-parse-xml.sh
 
 
