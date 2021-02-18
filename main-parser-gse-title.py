@@ -19,11 +19,11 @@ if __name__ == "__main__":
         description="A script to create a dataframe from xmls files related to Chip-Seq and Homo sapiens from GEO-NCBI")
 
     parser.add_argument('-p', '--path', action="store",
-                        help='The root path (base dir) to parse function. It will return a list of list for each sample for each series',
+                        help='The root path (base dir) to XML directory. It will return a list of list for each sample for each series',
                         required=True)
 
     parser.add_argument('-o', '--out_xml', action="store",
-                        help='file name containing the xml output result - from save file function',
+                        help='file name to the xml output result',
                         required=True)
 
 

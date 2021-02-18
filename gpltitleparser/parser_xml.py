@@ -24,7 +24,6 @@ def flatten_dict(list_of_records):
 
 def parser(base_dir):
 
-    #base_dir = sys.argv[1] #root path to xmls directory 
     pathlist = Path(base_dir).glob('**/*.tgz') #get all tgz files in all subdirectories
 
     big_list = []
