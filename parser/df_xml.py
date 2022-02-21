@@ -4,6 +4,7 @@ import os
 
 
 def open_df(file_result):
+    
     col  =  [ str(x) + "A" for x in range(1,39)]
     df = pd.read_csv(file_result, sep="\t", names=col)
     return df
@@ -12,7 +13,6 @@ def open_df(file_result):
 def drop_rename_df(df):
     
     df1 = df.copy()
-    
     df_drop = df1.drop(['3A', '4A', '5A', '6A', '7A', '8A', '9A', '10A', '11A','12A', '13A', '14A', '15A', '16A', '17A'], axis=1)
 
     #Creating new columns from commmon columns

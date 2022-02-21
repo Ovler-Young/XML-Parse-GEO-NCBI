@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 def flatten_dict(list_of_records):
+    
     flat_list = []
     for tag in list_of_records:
         
@@ -25,7 +26,6 @@ def flatten_dict(list_of_records):
 def parser(base_dir):
 
     pathlist = Path(base_dir).glob('**/*.tgz') #get all tgz files in all subdirectories
-
     big_list = []
     local_list = []
 
@@ -58,7 +58,9 @@ def parser(base_dir):
 
     return big_list
 
+
 def filter_list(big_list):
+    
     result_list = []
     wrong_list = []
 

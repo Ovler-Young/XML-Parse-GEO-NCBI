@@ -5,7 +5,11 @@ import sys
 
 
 def print_run(samples, data_dir, template):
-    
+    '''Receives a list of dir (samples), a path
+    to the main dir (data_dir) and a template.sh
+    file. Returns sh files for each dir in samples
+    '''
+
     file = open(template,'r')
     template = file.read()
 
@@ -27,11 +31,10 @@ def print_run(samples, data_dir, template):
     
 
 def main():
+    
     data_dir = sys.argv[1]  # Data directory
     template = sys.argv[2]  # slurm template
-    
     samples = listdir(data_dir)
-
     print_run(samples, data_dir, template)
 
 
