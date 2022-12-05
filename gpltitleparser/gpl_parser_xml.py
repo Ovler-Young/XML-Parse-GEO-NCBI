@@ -23,7 +23,7 @@ def flatten_dict(list_of_records):
     return(flat_list)
 
 
-def parser(base_dir):
+def gplParser(base_dir):
 
     pathlist = Path(base_dir).glob('**/*.tgz') #get all tgz files in all subdirectories
     big_list = []
@@ -42,24 +42,25 @@ def parser(base_dir):
                         root = tree.getroot()
                         root.tag #ok
 
-                        for gse in root.iter('{http://www.ncbi.nlm.nih.gov/geo/info/MINiML}Series'): 
+                        for plat in root.iter('{http://www.ncbi.nlm.nih.gov/geo/info/MINiML}Platform'): 
 
                             if len(local_list) > 0:
                                 # flatten dict and append to big_list
-                                big_list.append(flatten_dict(local_list))
+                                # big_list.append(flatten_dict(local_list))
                                 local_list = []
 
-                            for child in gse:
+                            for child in plat:
                          
                             #get Platform title
                                 if 'Title' in child.tag:
-                                    local_list.append(gse.attrib)
+                                    local_list.append(plat.attrib)
                                     local_list.append(child.text)
+                                    big_list.append(flatten_dict(local_list))
 
     return big_list
 
-
-def filter_list(big_list):
+#can be the same from main parser passing the len as argument
+def gpl_filter_list(big_list):
     
     result_list = []
     wrong_list = []

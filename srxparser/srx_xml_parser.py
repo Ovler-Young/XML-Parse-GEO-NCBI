@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 import os.path
 from pathlib import Path
 import sys
-
+import tqdm
 
 
 
@@ -13,29 +13,31 @@ def open_df(file_name):
     '''open a csv file 
     as dataframe'''
 
-    df = pd.read_csv(file_name)
-    
-    return df
+    # df = pd.read_csv(file_name)
+    # return df
+    return pd.read_csv(file_name, usecols=['GSM'])
 
 
 def get_srx_adress(df, path_base_dir):
-    '''This function extract the srx address 
-    for each sample inserted in a dataframe. 
-    The df should have a column 'GSM'.
+    '''Receives a df with a GSM column. 
     Return a list of tuple containing GSM and its
     respective SRX address'''
 
-    df1 = df.copy()
-    list_gsm = df1['GSM'].to_list()
-    base_dir = path_base_dir
+    list_gsm = df['GSM'].to_list()
+    list_no_dup = list(set(list_gsm))
+    print(len(list_no_dup))
+
+    
+    # print(list_gsm)
     list_gsm_srx_address = []
-    pathlist = Path(base_dir).glob('**/*.tgz')
+    pathlist = Path(path_base_dir).glob('**/*.tgz')
     count = 0
 
     for path in pathlist:
         t = tarfile.open(path, 'r')
         file_name =t.getnames()
-
+        # print(file_name)
+        # sys.exit()
 
         for file in file_name:
             try:
@@ -77,6 +79,7 @@ def no_dup_list_tuples(list_of_tuples):
 
     no_dup = set(tuple(row) for row in list_of_tuples)
     list_srx_address_complete_nodup = list(no_dup)
+    print('list_srx_address_complete_nodup:', len(list_srx_address_complete_nodup))
 
     return list_srx_address_complete_nodup
 
@@ -86,15 +89,40 @@ def save_gsm_srx(list_srx, out_file_name):
     duplicates and the output file name. 
     Returns a file separated by tab'''
     
-    srx_gsm_address_file = open(out_file_name,"w")
-    
-    for i in list_srx:
+    file_counter = 0
+    srx_gsm_address_file = open(out_file_name + "_chunck-" + str(file_counter) + ".tsv","w")
+
+    print("file opened" + out_file_name + "_chunck-" + str(file_counter) + ".tsv")
+    for cnt, i in enumerate(list_srx):
+
         line = "\t".join(i)
         line += "\n"
         srx_gsm_address_file.write(line)
 
+        if (cnt + 1) % 1000 == 0:
+
+            file_counter += 1
+
+            srx_gsm_address_file.close()
+            print("file closed " + out_file_name + "_chunck-" + str(file_counter -1) + ".tsv")
+            srx_gsm_address_file = open(out_file_name + "_chunck-" + str(file_counter) + ".tsv","w")
+            print("file opened " + out_file_name + "_chunck-" + str(file_counter) + ".tsv")
+
     srx_gsm_address_file.close()
-    
+
     print(out_file_name, 'successful saved')
+
+    # srx_gsm_address_file = open(out_file_name,"w")
+    
+    # for i in list_srx:
+    #     line = "\t".join(i)
+    #     line += "\n"
+    #     srx_gsm_address_file.write(line)
+
+    # srx_gsm_address_file.close()
+    
+    # print(out_file_name, 'successful saved')
+
+    
 
 

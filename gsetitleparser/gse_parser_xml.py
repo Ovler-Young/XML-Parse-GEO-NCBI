@@ -5,6 +5,7 @@ from xml.dom import minidom
 import xml.etree.ElementTree as ET
 import os.path
 from pathlib import Path
+import sys
 
 
 def flatten_dict(list_of_records):
@@ -23,15 +24,13 @@ def flatten_dict(list_of_records):
     return(flat_list)
 
 
-def parser(base_dir):
+def gseParser(base_dir):
 
     pathlist = Path(base_dir).glob('**/*.tgz') #get all tgz files in all subdirectories
     big_list = []
     local_list = []
 
     for path in pathlist:
-
-        #gse_name = os.path.basename(path).replace('_family.xml.tgz', '') 
 
         with tarfile.open(path) as archive:
             for member in archive:
@@ -42,24 +41,32 @@ def parser(base_dir):
                         root = tree.getroot()
                         root.tag #ok
 
-                        for plat in root.iter('{http://www.ncbi.nlm.nih.gov/geo/info/MINiML}Platform'): 
-
+                        for gse in root.iter('{http://www.ncbi.nlm.nih.gov/geo/info/MINiML}Series'): 
+                            # print(gse)
                             if len(local_list) > 0:
                                 # flatten dict and append to big_list
-                                big_list.append(flatten_dict(local_list))
+                                # big_list.append(flatten_dict(local_list))
                                 local_list = []
+                                
+                                # print(big_list)
+                                # print(len(big_list)) #so far 2
 
-                            for child in plat:
+                                # sys.exit()
+
+                            for child in gse:
                          
-                            #get Platform title
+                            #get GSE title
                                 if 'Title' in child.tag:
-                                    local_list.append(plat.attrib)
+                                    local_list.append(gse.attrib)
                                     local_list.append(child.text)
+                                    # print(local_list)
+                                    big_list.append(flatten_dict(local_list))
 
+                    
     return big_list
 
 
-def filter_list(big_list):
+def gse_filter_list(big_list):
     
     result_list = []
     wrong_list = []
@@ -75,7 +82,7 @@ def filter_list(big_list):
 
 
 
-def save_file(result_list, file_name):
+def gse_save_file(result_list, file_name):
 
     xml_parse = open(file_name, "w")
     for i in result_list: #our list without wrong files)

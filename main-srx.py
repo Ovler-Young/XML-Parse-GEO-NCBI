@@ -1,11 +1,13 @@
 import pandas as pd
 import argparse
 from srxparser import srx_xml_parser as sxp
+import sys
 
 
 def main():
+
+    print('Starting script to get GSM and parxe XMLs...')
     df = sxp.open_df(args.df_path)
-    #print(df)
     
     list_gsm_srx_address = sxp.get_srx_adress(df, args.path_xml)
     #print(list_gsm_srx_address)

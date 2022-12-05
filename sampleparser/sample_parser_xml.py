@@ -7,6 +7,7 @@ import os.path
 from pathlib import Path
 import sys
 
+
 def flatten_dict(list_of_records):
     
 
@@ -24,7 +25,7 @@ def flatten_dict(list_of_records):
     return(flat_list)
 
 
-def parser(base_dir):
+def sampleParser(base_dir):
 
     pathlist = Path(base_dir).glob('**/*.tgz') #get all tgz files in all subdirectories
     big_list = []
@@ -33,6 +34,7 @@ def parser(base_dir):
     for path in pathlist:
 
         gse_name = os.path.basename(path).replace('_family.xml.tgz', '') 
+        # print(gse_name)
 
         with tarfile.open(path) as archive:
             for member in archive:
@@ -42,32 +44,40 @@ def parser(base_dir):
                         tree = ET.parse(xmlfile)
                         root = tree.getroot()
                         root.tag #ok
+                        # print(root.tag)
         
                     
                         for sample in root.iter('{http://www.ncbi.nlm.nih.gov/geo/info/MINiML}Sample'):    
                             if len(local_list) > 0:
                                 # flatten dict and append to big_list
-                                big_list.append(flatten_dict(local_list)) #The function is called here
+                                
+                                #TO TEST THIS IF!!!!
+                                local_list_flatten = flatten_dict(local_list)
+                                    # big_list.append(flatten_dict(local_list)) #The function is called here
+                                    
+                                if local_list_flatten not in big_list:    
+                                    big_list.append(local_list_flatten)
+                                # print(big_list)
+                                # print(len(big_list)) #so far 38
                                 local_list = []
+                                # print(sample)
 
                             
-                            for child in sample:                   
+                            for child in sample:
+
                                 #get library-strategy
                                 if 'Library-Strategy' in child.tag:
                                     local_list.append(gse_name)
                                     local_list.append(sample.attrib)
                                     local_list.append(child.text)
 
-                                
                                 #get title
                                 if 'Title' in child.tag:
                                     local_list.append(child.text)
 
-
                                 #get GPL 
                                 if 'Platform-Ref' in child.tag:
                                     local_list.append(child.attrib)
-            
             
                                  #get release date - same case below
                                 if 'Status' in child.tag:
@@ -75,7 +85,6 @@ def parser(base_dir):
                                     for char in child.iter():
                                         if 'Release-Date' in char.tag:
                                             local_list.append(char.text.strip())
-
 
                                 #get antibody 
                                 if 'Channel' in child.tag:
@@ -254,7 +263,6 @@ def parser(base_dir):
                                     if count == 0:
                                         local_list.append('None')
 
-                                        
                                 #get catalogue number 
                                 if 'Channel' in child.tag:
                                     cat_number = list()
@@ -271,9 +279,6 @@ def parser(base_dir):
                                     if count == 0:
                                         local_list.append('None')       
                                         
-                                        
-                                        
-
                                 #get cell line
                                 if 'Channel' in child.tag:
                                     cell_line = list()
@@ -289,8 +294,7 @@ def parser(base_dir):
                                             break
                                     if count == 0:
                                         local_list.append('None')
-                                
-                                
+                   
                                 #get cell type
                                 if 'Channel' in child.tag:
                                     cell_type = list()
@@ -306,7 +310,6 @@ def parser(base_dir):
                                             break
                                     if count == 0:
                                         local_list.append('None')
-                                
                                 
                                 #get line
                                 if 'Channel' in child.tag:
@@ -324,7 +327,6 @@ def parser(base_dir):
                                     if count == 0:
                                         local_list.append('None')
                                 
-                            
                                 #Get organism
                                 if 'Channel' in child.tag:
                                     for char in child.iter():
@@ -340,14 +342,16 @@ def parser(base_dir):
     return big_list
 
 
-def filter_list(big_list):
-    
-    
+def filter_list(big_list, num_len):
+    """Receives a list of lists and 
+    an integer. Retruns a list of lists
+    of correct size"""
+
     result_list = []
     wrong_list = []
 
     for sublist in big_list:
-        if len(sublist) == 38:
+        if len(sublist) == int(num_len):
             result_list.append(sublist)
             
         else:
@@ -356,18 +360,17 @@ def filter_list(big_list):
     return result_list
 
 
+# def save_file(result_list, file_name):
 
-def save_file(result_list, file_name):
+#     xml_parse = open(file_name, "w")
+#     for i in result_list: #our list without wrong files)
+#         line = "\t".join(i)
+#         line += "\n"
+#         xml_parse.write(line)
 
-    xml_parse = open(file_name, "w")
-    for i in result_list: #our list without wrong files)
-        line = "\t".join(i)
-        line += "\n"
-        xml_parse.write(line)
+#     xml_parse.close()
 
-    xml_parse.close()
-
-    print(file_name, "saved")
+#     print(file_name, "saved")
 
     
 
