@@ -15,7 +15,7 @@ def filter_Hs_chipseq(df):
     '''This funcion receives a df 
     to filter the columns ORGANISM 
     by Homo sapiens AND Library_strategy
-    by chip-seq. The duplicated rowns will
+    by chip-seq. The duplicated rows will
     be dropped by GSM column. It will return
     a filtered df without duplicates.'''
 
