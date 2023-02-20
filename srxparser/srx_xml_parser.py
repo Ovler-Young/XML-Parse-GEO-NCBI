@@ -112,17 +112,6 @@ def save_gsm_srx(list_srx, out_file_name):
 
     print(out_file_name, 'successful saved')
 
-    # srx_gsm_address_file = open(out_file_name,"w")
-    
-    # for i in list_srx:
-    #     line = "\t".join(i)
-    #     line += "\n"
-    #     srx_gsm_address_file.write(line)
-
-    # srx_gsm_address_file.close()
-    
-    # print(out_file_name, 'successful saved')
-
     
 
 

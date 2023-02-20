@@ -8,8 +8,36 @@ from pathlib import Path
 import sys
 
 
+
+def charFields(term:str, child, local_list:list, field:str, ctn):
+    '''Receives the parameters to search a field in Characteristics
+    block in the XML files. Returns local_list
+    with the desired info'''
+
+    # print(field)
+    if term in child.tag:
+        field_list = [] 
+        for char in child.iter():
+            if 'Characteristics' in char.tag:
+                field_list.append(char.attrib.get('tag'))  
+                                           
+                if char.attrib.get('tag') == field:
+                    # local_list.append(char.text.strip())
+                    local_list.insert(ctn, char.text.strip())
+                    break
+
+        if len(field_list) > 0: #checking if we have the term in our list, if not, we are adding a string referring to this field            
+            # print(field_list) 
+            if field not in field_list: #this line changes
+                # local_list.append('no_'+field) #this line changes
+                local_list.insert(ctn, 'no_'+field) #this line 
+                # print(local_list)
+
+
 def flatten_dict(list_of_records):
-    
+    '''Receives a list and returns
+    a flatten list to be appended to
+    biglist'''
 
     flat_list = []
     for tag in list_of_records:
@@ -25,11 +53,13 @@ def flatten_dict(list_of_records):
     return(flat_list)
 
 
-def sampleParser(base_dir):
+
+def sampleParser(base_dir, all_fields):
 
     pathlist = Path(base_dir).glob('**/*.tgz') #get all tgz files in all subdirectories
     big_list = []
     local_list = []
+    ctn = 7 #index to characteristics fields (fixed fields)
 
     for path in pathlist:
 
@@ -51,295 +81,79 @@ def sampleParser(base_dir):
                             if len(local_list) > 0:
                                 # flatten dict and append to big_list
                                 
-                                #TO TEST THIS IF!!!!
                                 local_list_flatten = flatten_dict(local_list)
-                                    # big_list.append(flatten_dict(local_list)) #The function is called here
                                     
                                 if local_list_flatten not in big_list:    
                                     big_list.append(local_list_flatten)
-                                # print(big_list)
-                                # print(len(big_list)) #so far 38
+                                
                                 local_list = []
-                                # print(sample)
+                               
 
                             
                             for child in sample:
 
                                 #get library-strategy
                                 if 'Library-Strategy' in child.tag:
-                                    local_list.append(gse_name)
-                                    local_list.append(sample.attrib)
-                                    local_list.append(child.text)
+                                    # local_list.append(gse_name)
+                                    # local_list.append(sample.attrib)
+                                    # local_list.append(child.text)
+                                    local_list.insert(0,gse_name)
+                                    local_list.insert(1,sample.attrib)
+                                    local_list.insert(2,child.text)
 
                                 #get title
                                 if 'Title' in child.tag:
-                                    local_list.append(child.text)
+                                    # local_list.append(child.text)
+                                    local_list.insert(3,child.text)
 
                                 #get GPL 
                                 if 'Platform-Ref' in child.tag:
-                                    local_list.append(child.attrib)
+                                    # local_list.append(child.attrib)
+                                    local_list.insert(4,child.attrib)
             
-                                 #get release date - same case below
+                                #get release date - same case below
                                 if 'Status' in child.tag:
 #                                 print(child.tag)
                                     for char in child.iter():
                                         if 'Release-Date' in char.tag:
-                                            local_list.append(char.text.strip())
+                                            # local_list.append(char.text.strip())
+                                            local_list.insert(5,char.text.strip())
 
-                                #get antibody 
-                                if 'Channel' in child.tag:
-                                    antib = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            antib.append(char.attrib)
-                                            if char.attrib.get('tag') == 'antibody':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in antib:
-                                        if 'antibody' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-                                        
-                                #get antibody-target 
-                                if 'Channel' in child.tag:
-                                    antib_target = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            antib_target.append(char.attrib)
-                                            if char.attrib.get('tag') == 'antibody target':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in antib_target:
-                                        if 'antibody target' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-                                
-                                #get chip antibody 
-                                if 'Channel' in child.tag:
-                                    chipantib = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            chipantib.append(char.attrib)
-                                            if char.attrib.get('tag') == 'chip antibody':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in chipantib:
-                                        if 'chip antibody' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-                                
-                                #get chip-antibody 
-                                if 'Channel' in child.tag:
-                                    chip_plus_antib = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            chip_plus_antib.append(char.attrib)
-                                            if char.attrib.get('tag') == 'chip-antibody':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in chip_plus_antib:
-                                        if 'chip-antibody' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-            
-                                #get chip_antibody 
-                                if 'Channel' in child.tag:
-                                    chip_antib = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            chip_antib.append(char.attrib)
-                                            if char.attrib.get('tag') == 'chip_antibody':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in chip_antib:
-                                        if 'chip_antibody' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-                
-                                #get chip_target 
-                                if 'Channel' in child.tag:
-                                    chip_target = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            chip_target.append(char.attrib)
-                                            if char.attrib.get('tag') == 'chip_target':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in chip_target:
-                                        if 'chip_target' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-                
-                                #get chip epitope 
-                                if 'Channel' in child.tag:
-                                    chip_epitope = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            chip_epitope.append(char.attrib)
-                                            if char.attrib.get('tag') == 'chip epitope':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in chip_epitope:
-                                        if 'chip epitope' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-                
-                                #get ip antibody 
-                                if 'Channel' in child.tag:
-                                    ip_antib = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            ip_antib.append(char.attrib)
-                                            if char.attrib.get('tag') == 'ip antibody':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in ip_antib:
-                                        if 'ip antibody' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-                
-    
-                                #get ChIP 
-                                if 'Channel' in child.tag:
-                                    ChIP = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            ChIP.append(char.attrib)
-                                            if char.attrib.get('tag') == 'ChIP':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in ChIP:
-                                        if 'ChIP' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-
-                                #get chip antibody cat. # 
-                                if 'Channel' in child.tag:
-                                    chipantibcat = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            chipantibcat.append(char.attrib)
-                                            if char.attrib.get('tag') == 'chip antibody cat. #':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in chipantibcat:
-                                        if 'chip antibody cat. #' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-
-                                #get chip_antibody_catalog 
-                                if 'Channel' in child.tag:
-                                    chip_antib_cat = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            chip_antib_cat.append(char.attrib)
-                                            if char.attrib.get('tag') == 'chip_antibody_catalog':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in chip_antib_cat:
-                                        if 'chip_antibody_catalog' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-
-                                #get catalogue number 
-                                if 'Channel' in child.tag:
-                                    cat_number = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            cat_number.append(char.attrib)
-                                            if char.attrib.get('tag') == 'catalogue number':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in cat_number:
-                                        if 'catalogue number' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')       
-                                        
-                                #get cell line
-                                if 'Channel' in child.tag:
-                                    cell_line = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            cell_line.append(char.attrib)
-                                            if char.attrib.get('tag') == 'cell line':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in cell_line:
-                                        if 'cell line' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-                   
-                                #get cell type
-                                if 'Channel' in child.tag:
-                                    cell_type = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            cell_type.append(char.attrib)
-                                            if char.attrib.get('tag') == 'cell type':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in cell_type:
-                                        if 'cell type' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-                                
-                                #get line
-                                if 'Channel' in child.tag:
-                                    line = list()
-                                    for char in child.iter():
-                                        if 'Characteristics' in char.tag:                                        
-                                            line.append(char.attrib)
-                                            if char.attrib.get('tag') == 'line':
-                                                local_list.append(char.text.strip())
-                                    count = 0    
-                                    for i in line:
-                                        if 'line' in i.values():
-                                            count  = 1
-                                            break
-                                    if count == 0:
-                                        local_list.append('None')
-                                
-                                #Get organism
+                                #Get organism and source
                                 if 'Channel' in child.tag:
                                     for char in child.iter():
                                         if 'Organism' in char.tag:
-                                            local_list.append(char.text.strip())
+                                            # local_list.append(char.text.strip())
+                                            local_list.insert(6,char.text.strip())
                                             
-                                #get source          
+                                # #get source          
                                 if 'Channel' in child.tag:
                                     for char in child.iter():
                                         if 'Source' in char.tag:
-                                            local_list.append(char.text.strip())
+                                            # local_list.append(char.text.strip())
+                                            local_list.insert(7,char.text.strip())
+
+
+                                #Characteristics -> plenty of fields
+                                
+                                for field in all_fields:
+                               
+                                    ctn = ctn + 1
+                                    # print(ctn)
+                                    charFields('Channel', child, local_list, field, ctn)
+
+                               
+                               
+
+    for i in big_list:
+        print('List length:',len(i))
+        break
+        
+    # print(big_list)
+    print('BigList samples:',len(big_list))
 
     return big_list
+
 
 
 def filter_list(big_list, num_len):
@@ -358,20 +172,3 @@ def filter_list(big_list, num_len):
             wrong_list.append(sublist)
     
     return result_list
-
-
-# def save_file(result_list, file_name):
-
-#     xml_parse = open(file_name, "w")
-#     for i in result_list: #our list without wrong files)
-#         line = "\t".join(i)
-#         line += "\n"
-#         xml_parse.write(line)
-
-#     xml_parse.close()
-
-#     print(file_name, "saved")
-
-    
-
-
