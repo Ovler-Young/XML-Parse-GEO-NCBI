@@ -5,7 +5,7 @@ import sys
 
 
 def print_run(samples, data_dir, template):
-    '''Receives a list of dir (samples), a path
+    '''Receives a list of samples (samples), a path
     to the main dir (data_dir) and a template.sh
     file. Returns sh files for each dir in samples
     '''

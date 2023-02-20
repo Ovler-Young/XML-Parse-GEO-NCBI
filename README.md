@@ -2,22 +2,20 @@
 Script to download and parse the XMLs files (MINiML formatted file) referring to experiments (GSEs) deposited in the public database (GENE EXPRESSION OMNIBUS - GEO/NCB) 
 
 # Requirements
-```python 3```, ```pandas``` and ```numpy``` (requirements.txt is available)
+```python 3```, and see requirements.txt (available)
 
 
 We have six main scripts:
 
 1) get-xml.py (to download the xmls files related to each series from GEO-NCBI)
-2) main-parse.py (parse xmls files using several 'child' and 'subchild' tags
-3) main-srx.py (parse xmls files to recover the SRX information to use it to get the SRR ids)
-4) main-srr.py (web scraping to recover the SRR Ids for each sample (GSM)) 
-5) main-parser-gpl-title.py (web scraping to recover the title of GPLs) 
-6) main-parser-gse-title.py (web scraping to recover the title of GSEs) 
+2) main-parse.py (parse xmls files using several tags (characteristics fields)
+3) main-srx.py (parse xmls files to recover the SRX information to access the SRR ids)
+4) main-srr.py (web scraping to recover the SRR ids for each sample (GSM)) 
 
 
 - get-xml.py
 
-You should pass as the first argument a list of address (i.e ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE156nnn/GSE156377/miniml/GSE156377_family.xml.tgz) and the root path as the second argument (i.e $PWD/GEO). A new subdirectory will be created every 300 files downloaded within the directory specified on the command line (i.e $PWD/GEO/GEO_1).
+You should pass as the first argument a list of address - .txt file (i.e ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE156nnn/GSE156377/miniml/GSE156377_family.xml.tgz). The second argumentis the output root path (i.e $PWD/GEO). New subdirectories will be created every 300 files downloaded within the directory specified on the command line (i.e $PWD/GEO/GEO_1).
 
 
 The command line:
@@ -26,77 +24,93 @@ python get-xml.py list-ftp-address.txt
 path_to_GEO_dir
 ```
 
+
+- check_char_fields_GEO.py
+
+This script receives a path to the XML files, and returns all fields associated to Characteristics char.tag with a GSE as example for each field in a tsv format. 
+
+You should manipulate this output file to selected the desired fields to create Target,Catalog,Cell,Disease,Sex columns using parser_xml.py. The csv filtered file should be like exemplified: 
+
+| Target | Catalog | Cell | Disease | Sex |
+| ------ | ------- | ---- | ------- | --- |
+| antibody | catalog number | cell | cancer type | donor_sex |
+
+
+To check the Characteristics fields used in this version, please check `input_check_char/Characteristics_fields_2023-01-31.csv`
+
+To run the script:
+```
+python check_char_fields_GEO.p PATH_TO_XMLs
+```
+
+To run via slurm please check `sh_examples` folder (run-char-xml.sh). 
+
+
 - parser_xml.py
 
-This script will extract the follow information from the XMLs downloaded:
+This script will extract 10 fixed tags from XMLs. In addition, all Characteristics fields selected by the user will be placed into four additional columns. The fixed tags are:
+
+- 1 GSE
+- 2 GSM
+- 3 Library-strategy
+- 4 Release-date
+- 5 GSM_title
+- 6 Organism
+- 7 Source
+- 8 GPL
+- 9 GSE-title
+- 10 GPL-title
+
+The additional columns:
+
+- 11 Target
+- 12 ChIP-antibody-catalog
+- 13 Cell
+- 14 Disease
+- 15 Sex_GEO
+
+**Attention**: If we have more the one char_field for the same category (e.g chip_antibody and antibody for Target), the information will be concatenated by '&&&'.
+
+
+The script returns three output files:
+
+- 1 GEO_xml_2023_fields.csv (all extracted GSM available in the XMLs)
+- 2 GEO_2023_filtered_Hs_ChIP.csv (all GSMs associated to Human and ChIP-Seq)
+- 3 GEO_2023_filtered_Hs_ChIP_nodup.csv (no duplicated GSM)
+
 
 ```
-Release Date
-Title
-Library-Strategy (i.e ChIP-Seq, RNA-Seq)
-Plataform-Ref (GPL)
-Target information (related with chip_antibody and its variation - i.e antibody, chip_antibody, ChIP, chip-antibody, antibody target) 
-Organism
-ChIP catalog (and variations - i.e catalogue_number, chip antibody cat. #)
-Cell line
-Cell Type
-```
+usage: main-parser.py [-h] -p PATH -c CHAR -d OUT_DF
 
-The tsv output file (xml_out.tsv) is passed to df_xml.py script. This script will organize the columns with each extracted information and the output is a csv file (output_df_xml.csv).
-
-
-The command line:
-python main-parser.py -p $PATH_TO_DIRECTORY_XML -o xml_out.tsv -d PATH_DESTINY_FINAL_OUTPUT
-
-```
-usage: main-parser.py [-h] -p PATH -o OUT_XML -d OUT_DF
-
-A script to create a dataframe from xmls files related to Chip-Seq and Homo
-sapiens from GEO-NCBI
+A script to create a dataframe from xmls files related to Chip-Seq and Homo sapiens from GEO-NCBI
 
 optional arguments:
   -h, --help            show this help message and exit
-  -p PATH, --path PATH  The root path (base dir) to parse function. It will
-                        return a list of list for each sample for each series
-  -o OUT_XML, --out_xml OUT_XML
-                        file name containing the xml output result - from save
-                        file function
+  -p PATH, --path PATH  The root path (base dir) to parse function. It will return a list of list for each sample for each series
+  -c CHAR, --char CHAR  csv file containing Target, Chip-ant, Cell, Disease and Sex cols asociated to all desired fields to be extracted
+                        from Characteristics
   -d OUT_DF, --out_df OUT_DF
-                        path for final output_df_xml.csv with xml results
-
+                        output file with xml results
 ```
 
-To run via slurm:
-```
-#!/bin/bash
-#SBATCH --time=02:00:00 # changeable 
-#SBATCH --account=
-#SBATCH --cpus-per-task=4 #example
-#SBATCH --mem=5G #example
-#SBATCH --job-name=parse-xml
+To run via slurm please check `sh_examples` folder ()
 
-module load python/3.8.0
-virtualenv --no-download $SLURM_TMPDIR/env
-source $SLURM_TMPDIR/env/bin/activate
-pip install --no-index --upgrade pip
-
-pip install --no-index -r requirements.txt
-
-python main-parser.py -p $PATH_TO_DIRECTORY_XML -o xml_out.tsv -d PATH_DESTINY_FINAL_OUTPUT.csv
-```
 
 - main-srx.py
 
 You should pass a csv file with a GSM (samples) column as -d (--df_path). You also should pass the directory with the downloaded XMLs files (-p, --path_xml). For each gsm the SRX information will be scrapped. The last argument (-o, --out_file_name) is the output file name. 
 
 The command line: 
+```
 python main-srx.py -d $PATH/df_with_GSM_column.csv -p $PATH_DIR_XML_FILES -o $PATH/output_file_name.csv
+```
+
 
 ```
 usage: main-srx.py [-h] -d DF_PATH -p PATH_XML -o OUT_FILE_NAME
 
-A script to parse xmls from GEO-NCBI and return the GSM and SRX information as
-a tsv file
+A script to parse XMLs from GEO-NCBI and return the GSM and SRX information as
+a tsv file.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -113,11 +127,10 @@ optional arguments:
 
 To run via slurm: see previous topic
 The command line to run via slurm:
+
 ```
 python main-srx.py -d $PATH/df_with_GSM_column.csv -p $PATH_DIR_XML_FILES -o $PATH/DIR_RESULT/output_file_name #(Do not put extension here)
 ```
-```PS: The output file will be chunked each 1000 lines. The complete output name file will be: output_file_name_chunck-0.tsv```
-
 
 4) main-srr.py
 
@@ -126,13 +139,15 @@ The requirements.txt file is available in srrparser folder.
 The output files generated by main-srx.py will be passed here. You shoud generate the .sh files with the command line to run the main-srr.py. The run_srr_chunck.sh files will be generated by create_srr_run.py. You also should pass a run_template.sh file (available) as the third argument.
 
 To run create_srr_run.py:
+
 ```
-python create_srr_run.py PATH/DIR_RESULT run_template.sh (you should adjust the run_template with your slurm information - account)
+python create_srr_run.py PATH/SRX_OUTPUT run_template.sh (you should adjust the run_template with your slurm information - account)
 ```
 
 After run the create_srr.py you can submit all of the run_chunk.sh.
 
 Example run.sh file generated by create_srr.py:
+
 ```
 #!/bin/bash
 #SBATCH --time=24:00:00
@@ -149,8 +164,9 @@ pip install --no-index --upgrade pip
 pip install --no-index -r PATH/srrparser/requirements.txt
 pip install retry
 
-python $PATH/main-srr.py -p PATH/DIR_RESULT/srx_chuncked.tsv -o output.csv
+python $PATH/main-srr.py -p PATH/SRX_OUTPUT/srx_chuncked_0.tsv -o output.csv
 ```
+
 The main-srr.py:
 
 ```
@@ -167,54 +183,4 @@ optional arguments:
   -o OUT, --out OUT     name of output file
 ```
 
-It will be generated an srr_srx.output.csv for each run_chunk. If you want to concatenate the srx_srr outputs you can run the concat-csv.sh script.
-
-
-- main-parser-gpl-title.py
-
-This script will extract the GPLs titles from XMLs files.
-
-The command line: 
-i.e: python main-parser-gpl-title.py -p PATH_TO_XMLs_DIR -o xml_gpltitle_out.tsv
- ```
- usage: main-parser-gpl-title.py [-h] -p PATH -o OUT_XML
-
-A script to create a dataframe from xmls files related to Chip-Seq and Homo
-sapiens from GEO-NCBI
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -p PATH, --path PATH  The root path (base dir) to XMl dir. It will return a
-                        list of list for each sample for each series
-  -o OUT_XML, --out_xml OUT_XML
-                        file name to the xml output result
-
-```
-
-To see how to run this script via slurm, please see run-gpltitle-parse-xml.sh
-
-- main-parser-gse-title.py 
-
-This script will extract the GSEs titles from XMLs files.
-
-The command line:
-i.e: python main-parser-gse-title.py -p PATH_TO_XMLs_DIR -o xml_gsetitle_out.tsv
-
-```
-usage: main-parser-gse-title.py [-h] -p PATH -o OUT_XML
-
-A script to create a dataframe from xmls files related to Chip-Seq and Homo
-sapiens from GEO-NCBI
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -p PATH, --path PATH  The root path (base dir) to XML directory. It will
-                        return a list of list for each sample for each series
-  -o OUT_XML, --out_xml OUT_XML
-                        file name to the xml output result
-
-```
-
-To see how to run this script via slurm see run-gsetitle-parse-xml.sh
-
-
+For each `run_chunk` a `srr_srx.output.csv` will be generated. If you want to concatenate the **srx_srr outputs** you can run the `concat-csv.sh` script available in `srrparser`.

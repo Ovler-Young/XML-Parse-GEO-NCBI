@@ -7,7 +7,7 @@ import sys
 
 
 def save_df(df, out_df):
-
+    """Saving df to csv file"""
     df.to_csv(out_df, index=False)
 
 
@@ -15,58 +15,91 @@ def filter_Hs_chipseq(df):
     '''This funcion receives a df 
     to filter the columns ORGANISM 
     by Homo sapiens AND Library_strategy
-    by chip-seq. The duplicated rows will
+    by chip-seq. The duplicated rowns will
     be dropped by GSM column. It will return
     a filtered df without duplicates.'''
 
-    df_Hs_chipseq = df[(df['Organism'].str.contains('Homo sapiens', case=False, na=False)) & (df['Library_strategy'].str.contains('chip-seq', case=False, na=False))]
+    df_Hs_chipseq = df[(df['Organism'].str.contains('Homo sapiens', case=False, na=False)) & (df['Library-strategy'].str.contains('chip-seq', case=False, na=False))]
+    print('df_Hs_chipseq', len(df_Hs_chipseq))
     df_Hs_chipseq_no_dup = df_Hs_chipseq.drop_duplicates(subset='GSM', keep='first') #keep this - Superseries can repeat the GSM
-    
+    print('df_Hs_chipseq_no_dup',len(df_Hs_chipseq_no_dup)) 
+
     return df_Hs_chipseq, df_Hs_chipseq_no_dup
 
 
-def drop_rename_df(df_merged):
-    
+def create_merged_cols(df,col,list_field):
+    """Receives a df, col name and list of cols
+    to be concatenated by &&&. Returns the new col"""
+
+    df[col] = df[list_field].apply(lambda row: '&&&'.join(row.dropna().values.astype(str)), axis=1) #Concatenating fields into a column (sep &&&)
+    # df[col] =  df[col].str.replace(r'&{4,}', '', regex=True).astype('str') #replacing empty info -> 4 or more '&'
+
+
+def drop_rename_df(df_merged, all_fields, target_fields,catalog_fields,cell_fields,disease_fields,sex_fields):
+    """Receives a df and six lists containing the characteristics
+    fields to be concatenated into columns.Returns a df including
+    the new concatenating columns."""
+
     df1 = df_merged.copy()
-    df_drop = df1.drop(['3A', '4A', '5A', '6A', '7A', '8A', '9A', '10A', '11A','12A', '13A', '14A', '15A', '16A', '17A', '39A', '41A'], axis=1)
-  
-    #Creating new columns from commmon columns
-    df_drop = df_drop.replace('None','')
     
-    df_drop['chip_antib_catalog'] = df_drop['27A'].astype(str) + df_drop['28A'].astype(str) + df_drop['29A'].astype(str)
-    df_drop['Target'] = df_drop['18A'].astype(str) + df_drop['19A'].astype(str) + df_drop['20A'].astype(str) + df_drop['21A'].astype(str) + df_drop['22A'].astype(str) + df_drop['23A'].astype(str) + df_drop['24A'].astype(str) + df_drop['25A'].astype(str) + df_drop['26A'].astype(str)
-    df_drop['Cell_line'] = df_drop['30A'].astype(str) + df_drop['32A'].astype(str)
-    df_drop = df_drop.drop(['18A', '19A', '20A', '21A', '22A', '23A', '24A', '25A', '26A', '27A', '28A', '29A', '30A','32A'], axis=1)
+    #Replacing no_field by '' to concatenate columns
+    for field in all_fields:
+        to_rep = 'no_'+field
+        df1 = df1.replace(to_rep, np.nan) #necessary to separator &&& step using dropna
+
+    #concatenating columns and remove the cols used for that after...
     
-    #rename columns 
-    df_rename = df_drop.rename(columns = {'1A':'Release-Date', '2A':'Title', '31A':'Cell_type', '33A':'Organism', '34A':'Source_cell', '35A': 'GPL', '36A': 'GSE', '37A':'GSM', '38A':'Library_strategy', '40A':'GSE_Title', '42A':'GPL_title'})
-    df_rename = df_rename.replace('', np.NaN)
+    create_merged_cols(df1,'Target', target_fields)
+    create_merged_cols(df1,'ChIP-antibody-catalog', catalog_fields)
+    create_merged_cols(df1,'Cell', cell_fields) 
+    create_merged_cols(df1,'Disease', disease_fields)
+    create_merged_cols(df1,'Sex_GEO', sex_fields) 
+
+    #dropping columns from char_fields
+    df1 = df1.drop(columns=all_fields) 
+    print('after drop:', df1.columns)
+
+    df1.replace('', '----', inplace=True)
+
+    return df1
     
-    return df_rename
 
 
-def merge_dfs(df_samples, df_gse, df_gpl):
+def merge_dfs(df_samples, df_gse, df_gpl, all_fields): #fixed dup samples -> create_df_from_listoflists
     """Receives three dfs and returns a merged df"""
 
-    df_samples, df_gse, df_gpl = create_df_from_listoflist(df_samples, df_gse, df_gpl)
-    merged_gse = df_samples.merge(df_gse, how='left', left_on='36A', right_on='39A')
+    df_samples, df_gse, df_gpl = create_df_from_listoflist(df_samples, df_gse, df_gpl, all_fields)
+    merged_gse = df_samples.merge(df_gse, how='left', left_on='GSE', right_on='GSE')
+    print('merged_gse:', len(merged_gse))
     
-    return merged_gse.merge(df_gpl, how='left', left_on='35A', right_on='41A')
+    merged_gpl =  merged_gse.merge(df_gpl, how='left', left_on='GPL', right_on='GPL')
+    print('merged_gpl:', len(merged_gpl))
+
+    return merged_gpl
 
 
-def create_df_from_listoflist(sample, gse, gpl):
+def create_df_from_listoflist(sample, gse, gpl, all_fields):
     """Receives three lists from xml parse
     and returns three dfs"""
 
-    col = [str(x) + 'A' for x in range(1,39)]
-    df_samples = pd.DataFrame(sample, columns = col)
+    #Samples
+    #columns following the xml parser order + char_field.txt
+    col_fixed = ['GSE', 'GSM', 'Library-strategy','Release-date', 'GSM_title', 'Organism', 'Source', 'GPL']
+    
+    #generating all cols for our df
+    header = col_fixed + all_fields #fixed columns + all selected fields from Characteristics block
 
-    col_gse = ['39A', '40A']
+    #samples df
+    df_samples = pd.DataFrame(sample, columns = header)
+
+    #GSE
+    col_gse = ['GSE', 'GSE-title']
     df_gse = pd.DataFrame(gse, columns = col_gse)
 
-    col_gpl = ['41A', '42A']
+    #GPL
+    col_gpl = ['GPL', 'GPL-title']
     df_gpl = pd.DataFrame(gpl, columns = col_gpl)
-
+    df_gpl = df_gpl.drop_duplicates(keep='first') #to avoid duplicated GSM in merged df!!! fixed!
 
     return df_samples, df_gse, df_gpl
 
