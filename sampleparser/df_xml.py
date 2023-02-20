@@ -12,7 +12,7 @@ def save_df(df, out_df):
 
 
 def filter_Hs_chipseq(df):
-    '''Receives a df to filter the columns ORGANISM 
+    '''Receives a  df to filter the columns ORGANISM 
     by Homo sapiens AND Library_strategy by chip-seq,
     and drop duplicates. Returns a filtered df without
     duplicates.'''
