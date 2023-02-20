@@ -12,12 +12,10 @@ def save_df(df, out_df):
 
 
 def filter_Hs_chipseq(df):
-    '''This funcion receives a  df 
-    to filter the columns ORGANISM 
-    by Homo sapiens AND Library_strategy
-    by chip-seq. The duplicated rowns will
-    be dropped by GSM column. It will return
-    a filtered df without duplicates.'''
+    '''Receives a  df to filter the columns ORGANISM 
+    by Homo sapiens AND Library_strategy by chip-seq,
+    and drop duplicates. Returns a filtered df without
+    duplicates.'''
 
     df_Hs_chipseq = df[(df['Organism'].str.contains('Homo sapiens', case=False, na=False)) & (df['Library-strategy'].str.contains('chip-seq', case=False, na=False))]
     print('df_Hs_chipseq', len(df_Hs_chipseq))
