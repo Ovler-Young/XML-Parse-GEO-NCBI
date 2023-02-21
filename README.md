@@ -1,5 +1,5 @@
 # XML-Parse-GEO-NCBI
-Script to download and parse the XMLs files (MINiML formatted file) referring to experiments (GSEs) deposited in the public database (GENE EXPRESSION OMNIBUS - GEO/NCB) 
+Script to download and parse the XMLs files (MINiML formatted file) referring to experiments (GSEs) deposited in the public database (GENE EXPRESSION OMNIBUS - GEO/NCBI) 
 
 # Requirements
 ```python 3```, and see requirements.txt (available)
@@ -15,7 +15,7 @@ We have six main scripts:
 
 - get-xml.py
 
-You should pass as the first argument a list of address - .txt file (i.e ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE156nnn/GSE156377/miniml/GSE156377_family.xml.tgz). The second argumentis the output root path (i.e $PWD/GEO). New subdirectories will be created every 300 files downloaded within the directory specified on the command line (i.e $PWD/GEO/GEO_1).
+You should pass as the first argument a list of address - .txt file (i.e ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE156nnn/GSE156377/miniml/GSE156377_family.xml.tgz). The second argument is the output root path (i.e $PWD/GEO). New subdirectories will be created every 300 files downloaded within the directory specified on the command line (i.e $PWD/GEO/GEO_1).
 
 
 The command line:
@@ -29,7 +29,7 @@ path_to_GEO_dir
 
 This script receives a path to the XML files, and returns all fields associated to Characteristics char.tag with a GSE as example for each field in a tsv format. 
 
-You should manipulate this output file to selected the desired fields to create Target,Catalog,Cell,Disease,Sex columns using parser_xml.py. The csv filtered file should be like exemplified: 
+You should manipulate this output file to select the desired fields to create Target,Catalog,Cell,Disease,Sex columns using parser_xml.py. The filtered csv file should be like exemplified below: 
 
 | Target | Catalog | Cell | Disease | Sex |
 | ------ | ------- | ---- | ------- | --- |
@@ -93,7 +93,7 @@ optional arguments:
                         output file with xml results
 ```
 
-To run via slurm please check `sh_examples` folder ()
+To run via slurm please check `sh_examples` folder (run-parse-xml.sh)
 
 
 - main-srx.py
@@ -109,7 +109,7 @@ python main-srx.py -d $PATH/df_with_GSM_column.csv -p $PATH_DIR_XML_FILES -o $PA
 ```
 usage: main-srx.py [-h] -d DF_PATH -p PATH_XML -o OUT_FILE_NAME
 
-A script to parse XMLs from GEO-NCBI and return the GSM and SRX information as
+A script to parse XMLs from GEO-NCBI. Returns the GSM and SRX information as
 a tsv file.
 
 optional arguments:
