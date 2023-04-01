@@ -40,7 +40,7 @@ To check the Characteristics fields used in this version, please check `input_ch
 
 To run the script:
 ```
-python check_char_fields_GEO.p PATH_TO_XMLs
+python check_char_fields_GEO.py PATH_TO_XMLs
 ```
 
 To run via slurm please check `sh_examples` folder (run-char-xml.sh). 
